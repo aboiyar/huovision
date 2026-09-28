@@ -40,7 +40,18 @@ export default async function ShopPage({
   }
 
   if (category && category !== "all") {
-    query.category = { $regex: new RegExp(`^${category}$`, "i") };
+    const matchedCat = await Category.findOne({
+      $or: [{ slug: category.toLowerCase() }, { name: { $regex: new RegExp(`^${category}$`, "i") } }]
+    });
+    if (matchedCat) {
+      query.$or = [
+        { category: matchedCat.name },
+        { category: matchedCat.slug },
+        { category: { $regex: new RegExp(`^${category}$`, "i") } }
+      ];
+    } else {
+      query.category = { $regex: new RegExp(`^${category}$`, "i") };
+    }
   }
 
   if (minPrice || maxPrice) {

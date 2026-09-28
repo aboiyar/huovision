@@ -359,6 +359,37 @@
     showToast(`Added <strong>${item.name}</strong> to your cart! <a href="/cart" style="color:#6ee7b7;margin-left:6px;text-decoration:underline;">View Cart</a>`);
   }
 
+  // Handle click on any .hv-add-to-cart-btn
+  document.addEventListener("click", function (e) {
+    const btn = e.target.closest(".hv-add-to-cart-btn");
+    if (btn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const productId = btn.dataset.productId || "";
+      const name = btn.dataset.name || "Product";
+      const price = parseFloat(btn.dataset.price) || 0;
+      const image = btn.dataset.image || LOGO_SRC;
+      addToCart({ productId, name, price, image, quantity: 1 });
+
+      const origHtml = btn.innerHTML;
+      btn.innerHTML = `✓ Added`;
+      const prevBg = btn.style.backgroundColor;
+      btn.style.backgroundColor = "#059669";
+      setTimeout(() => {
+        btn.innerHTML = origHtml;
+        btn.style.backgroundColor = prevBg;
+      }, 1400);
+    }
+  });
+
+  window.huonVision = {
+    addToCart,
+    showToast,
+    getCart,
+    saveCart,
+    updateCartBadge,
+  };
+
   function updateCartBadge() {
     const cart = getCart();
     const totalCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);

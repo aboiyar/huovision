@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Product from "@/models/Product";
+import Category from "@/models/Category";
 import { isAdmin } from "@/lib/auth";
 
 export async function GET(req: Request) {
@@ -19,8 +20,18 @@ export async function GET(req: Request) {
     const query: any = {};
 
     if (category && category !== "all") {
-      // Find case-insensitive or exact category slug/name
-      query.category = { $regex: new RegExp(`^${category}$`, "i") };
+      const matchedCat = await Category.findOne({
+        $or: [{ slug: category.toLowerCase() }, { name: { $regex: new RegExp(`^${category}$`, "i") } }]
+      });
+      if (matchedCat) {
+        query.$or = [
+          { category: matchedCat.name },
+          { category: matchedCat.slug },
+          { category: { $regex: new RegExp(`^${category}$`, "i") } }
+        ];
+      } else {
+        query.category = { $regex: new RegExp(`^${category}$`, "i") };
+      }
     }
 
     if (search) {
